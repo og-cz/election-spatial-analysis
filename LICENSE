@@ -1,21 +1,18 @@
-MIT License
+All Rights Reserved
 
-Copyright (c) 2026 ogcz
+Copyright (c) 2026 [Your Name]
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This repository and all of its contents — code, notebooks, analysis, figures,
+and documentation — are proprietary. No permission is granted to copy,
+modify, distribute, sublicense, or use this work or any portion of it, in
+source or compiled form, for any purpose, without the prior written
+permission of the copyright holder.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+This is the default legal state under copyright law even without this file
+present; this file exists to state it explicitly rather than leave it
+implicit.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Note on data: the election results referenced and processed by this project
+originate from OpenHalalan, not from the copyright holder, and are not
+covered by this license. See data/README.md for source and provenance. Raw
+source files are not redistributed in this repository.
