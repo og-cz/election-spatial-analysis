@@ -13,6 +13,15 @@ directly rather than downloaded by this project:
 Put both files in `raw/` under exactly those names before running `notebooks/01_data_cleaning.ipynb`
 — they are not included in this repository (the vote-counts file alone is ~55MB compressed).
 
+A third, unrelated source is used starting `09`: `raw/ph_provinces_raw.geojson`, 88
+province/district boundary polygons derived from the PSGC-coded shapefiles published by
+[altcoder/philippines-psgc-shapefiles](https://github.com/altcoder/philippines-psgc-shapefiles)
+(PSGC as of 31 December 2023), simplified to GeoJSON by
+[faeldon/philippines-json-maps](https://github.com/faeldon/philippines-json-maps) (MIT licensed).
+Unlike the two election files above, this one **is** included in this repository (and is the one
+exception carved out in `.gitignore`) — it's small (~700KB) and freely redistributable, whereas
+the election files are large and not ours to redistribute.
+
 ## Known data-quality issues (found by direct inspection, not assumed)
 
 These are the reasons `01_data_cleaning.ipynb` looks the way it does. Recorded here so they
@@ -74,6 +83,17 @@ don't have to be rediscovered:
   only 2010, 2016, and 2022 have a presidential race — 2013, 2019, and 2025 are midterms with no
   President/VP row at all. Not missing data; this is why `PRESIDENT_top1_share` in
   `locality_features.parquet` is only ~50% populated.
+- **Province names don't match the boundary file out of the box.** Confirmed directly in `09`:
+  of 88 provinces in the election data, 7 have no direct name match against the PSGC boundary
+  file's `adm2_en` field. Four are cosmetic (`NCR {N} DISTRICT` vs. the boundary file's longer
+  `"NCR, ... (NOT A PROVINCE)"` phrasing; `TAWI TAWI` vs. `"TAWI-TAWI"`). One is a genuine
+  administrative change: Maguindanao split into Maguindanao del Norte/del Sur in 2022, and the
+  election data reflects this transition mid-stream — plain `MAGUINDANAO` for 2010-2022, the two
+  split names only from 2025 — while the boundary file (PSGC as of end-2023) only has the
+  post-split names, so `09` adds a unioned `MAGUINDANAO` polygon alongside the two split ones to
+  serve both eras correctly. The last, `SPECIAL GEOGRAPHIC AREA` (8 rows, all 2025), is a BARMM
+  administrative designation with no polygon of its own in this boundary file and is left
+  genuinely unmapped rather than forced to match something.
 
 ## Processed outputs
 
@@ -93,6 +113,7 @@ Written by the notebooks into `processed/`:
 | `locality_cluster_transitions.parquet` | `06` | ~7.2k | locality × consecutive election pair | Yes |
 | `locality_clusters_rich.parquet` | `07` | ~6.4k | locality × year (2016+ only), + richer cluster label | Yes |
 | `locality_anomaly_temporal.parquet` | `08` | ~1.7k | locality, + anomaly/volatility summary | Yes |
+| `province_cluster_summary.parquet` | `09` | 88 | province, + landslide-share summary | Yes |
 
 The two large intermediate files are dropped from the delivered zip purely to stay under the
 file-size limit for sending it — `02_feature_engineering.ipynb` needs them, so re-run
@@ -101,14 +122,16 @@ this zip rather than continuing in the same environment they were built in.
 
 ## Git
 
-Nothing under `data/raw/` or `data/processed/` is tracked in git (`.gitignore` at the project
-root excludes both directories' contents, keeping only `.gitkeep` placeholders so the empty
-folders still exist after a fresh clone). Everything in both directories is either a source file
-that isn't ours to redistribute (`raw/`) or fully regenerable output (`processed/` — every file
-in the table above is rebuilt by running `notebooks/01` through `notebooks/07` in order). Only
-the notebooks and `src/common.py` are the actual tracked work; a fresh clone needs the two files
-listed under **Source** above dropped into `raw/` and the notebooks run in order to reproduce
-everything else.
+Nothing under `data/raw/` or `data/processed/` is tracked in git, with one exception:
+`.gitignore` at the project root excludes both directories' contents (keeping only `.gitkeep`
+placeholders so the empty folders still exist after a fresh clone), except for
+`raw/ph_provinces_raw.geojson`, which is small and freely redistributable and so is tracked
+directly. Everything else in both directories is either an election source file that isn't ours
+to redistribute (`raw/`) or fully regenerable output (`processed/` — every file in the table
+above is rebuilt by running `notebooks/01` through `notebooks/09` in order). Only the notebooks,
+`src/common.py`, and that one boundary file are the actual tracked work; a fresh clone needs the
+two election files listed under **Source** above dropped into `raw/` and the notebooks run in
+order to reproduce everything else.
 
 ## `08`'s finding, since it's a null result and easy to miss in a data README
 
