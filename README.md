@@ -1,19 +1,26 @@
-# 
+# Election Spatial Analysis 
+
+An unsupervised analysis of Philippine National and Local Elections (NLE) results, 2010-2025,
+looking at the *shape* of how each locality votes — how lopsided or contested its races are,
+how fragmented its candidate fields get, whether that shape is stable or shifts over time —
+rather than who wins. Nothing in this project uses winner labels, party affiliation, or any
+outcome variable as a modeling target; every model here is unsupervised, built purely from
+vote-share and concentration statistics computed from the raw tallies.
 
 ## Pipeline
 
 Nine notebooks, each consuming the previous one's saved output and each stating explicitly what it deliberately leaves for the next:
 
 ```mermaid
-flowchart LR
-    A["01<br/>clean"] --> B["02<br/>engineer<br/>race features"]
-    B --> C["03<br/>pivot to one row<br/>per locality"]
-    C --> D["04<br/>cluster"]
-    D --> E["05<br/>find<br/>anomalies"]
-    E --> F["06<br/>track<br/>over time"]
-    F --> G["07<br/>cluster on a<br/>richer feature set"]
-    G --> H["08<br/>cross-check anomalies<br/>against volatility"]
-    H --> I["09<br/>map"]
+flowchart TD
+    A["01 · clean"] --> B["02 · engineer race features"]
+    B --> C["03 · pivot to one row per locality"]
+    C --> D["04 · cluster"]
+    D --> E["05 · find anomalies"]
+    E --> F["06 · track over time"]
+    F --> G["07 · cluster on a richer feature set"]
+    G --> H["08 · cross-check anomalies against volatility"]
+    H --> I["09 · map"]
 ```
 
 Shared logic (text cleaning, locality grouping, feature builders, the geographic name-matching) lives in `src/common.py` and `src/geo.py` rather than being redefined per notebook, so every downstream notebook works from the same definitions.
