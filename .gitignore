@@ -1,7 +1,10 @@
 # Election data (source files and every generated output) -- all regenerable
-# by running notebooks/01 through notebooks/07 in order. See data/README.md.
+# by running notebooks/01 through notebooks/09 in order. See data/README.md.
 data/raw/*
 !data/raw/.gitkeep
+# Exception: a small (~700KB), MIT-licensed, publicly redistributable province
+# boundary file used by 09 -- unlike the election data, this one is ours to ship.
+!data/raw/ph_provinces_raw.geojson
 data/processed/*
 !data/processed/.gitkeep
 
