@@ -1,0 +1,386 @@
+/* ---------------------------------------------------------------- tokens */
+:root{
+  color-scheme:light;
+  --surface-page:#f4f4f4;
+  --surface-card:#ffffff;
+  --surface-raised:#fafafa;
+  --text-primary:#161616;
+  --text-secondary:#595959;
+  --text-muted:#8c8c8c;
+  --border:rgba(20,20,20,0.12);
+  --border-strong:rgba(20,20,20,0.22);
+  --accent:#6e6e6e;
+  --accent-strong:#383838;
+  --accent-ink:#ffffff;
+  /* fixed dark ink for text sitting on the light end of the mode-invariant --seq-* scale
+     (--seq-100..--seq-250 stay light gray in both themes, same reasoning as --accent-ink
+     staying fixed white for the dark end) -- never swap this for --text-primary */
+  --seq-ink:#161616;
+  --shadow:0 1px 2px rgba(20,20,20,0.06),0 8px 24px rgba(20,20,20,0.08);
+  --seq-100:#ebebeb; --seq-150:#d9d9d9; --seq-200:#c7c7c7; --seq-250:#b5b5b5;
+  --seq-300:#a3a3a3; --seq-350:#919191; --seq-400:#808080; --seq-450:#6e6e6e;
+  --seq-500:#5c5c5c; --seq-550:#4a4a4a; --seq-600:#383838; --seq-650:#262626;
+  --seq-700:#141414;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --surface-page:#121212;
+    --surface-card:#1c1c1c;
+    --surface-raised:#242424;
+    --text-primary:#f2f2f2;
+    --text-secondary:#b8b8b8;
+    --text-muted:#868686;
+    --border:rgba(255,255,255,0.12);
+    --border-strong:rgba(255,255,255,0.22);
+    --accent:#808080;
+    --accent-strong:#a3a3a3;
+    --accent-ink:#ffffff;
+    --shadow:0 1px 2px rgba(0,0,0,0.3),0 8px 24px rgba(0,0,0,0.4);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --surface-page:#121212;
+  --surface-card:#1c1c1c;
+  --surface-raised:#242424;
+  --text-primary:#f2f2f2;
+  --text-secondary:#b8b8b8;
+  --text-muted:#868686;
+  --border:rgba(255,255,255,0.12);
+  --border-strong:rgba(255,255,255,0.22);
+  --accent:#808080;
+  --accent-strong:#a3a3a3;
+  --accent-ink:#ffffff;
+  --shadow:0 1px 2px rgba(0,0,0,0.3),0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* ---------------------------------------------------------------- base */
+*{box-sizing:border-box;}
+body{
+  background:var(--surface-page);
+  color:var(--text-primary);
+  font-family:"Public Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  font-weight:500;
+  padding-inline:0;
+}
+h1,h2,h3{ font-weight:700; }
+.mono{font-family:"JetBrains Mono","SF Mono",Consolas,monospace;font-variant-numeric:tabular-nums;}
+
+html,body{ height:100%; }
+.app{
+  display:flex;
+  height:calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  min-height:calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  width:100%;
+}
+.map-col{
+  flex:1 1 auto;
+  position:relative;
+  min-width:0;
+  min-height:0;
+  background:var(--surface-page);
+}
+#map{
+  position:absolute;
+  inset:0;
+  background:var(--surface-page);
+}
+.leaflet-container{ background:var(--surface-page); font-family:inherit; }
+.leaflet-control-zoom a{
+  background:var(--surface-card) !important;
+  color:var(--text-primary) !important;
+  border-bottom:1px solid var(--border) !important;
+}
+.leaflet-control-zoom a:hover{ background:var(--surface-raised) !important; }
+.leaflet-bar{ box-shadow:var(--shadow) !important; border:1px solid var(--border) !important; }
+.leaflet-touch .leaflet-bar{ border:1px solid var(--border) !important; }
+
+.province-tip{
+  background:var(--surface-card) !important;
+  color:var(--text-primary) !important;
+  border:1px solid var(--border-strong) !important;
+  border-radius:8px !important;
+  box-shadow:var(--shadow) !important;
+  font-family:"Public Sans",sans-serif !important;
+  font-weight:600 !important;
+  font-size:12.5px !important;
+  padding:7px 10px !important;
+  opacity:1 !important;
+}
+.province-tip .tip-name{ font-weight:700; }
+.province-tip .tip-share{ font-family:"JetBrains Mono",monospace; font-weight:500; color:var(--accent); }
+.leaflet-tooltip-top.province-tip:before{ border-top-color:var(--surface-card) !important; }
+.leaflet-tooltip-bottom.province-tip:before{ border-bottom-color:var(--surface-card) !important; }
+.leaflet-tooltip-left.province-tip:before{ border-left-color:var(--surface-card) !important; }
+.leaflet-tooltip-right.province-tip:before{ border-right-color:var(--surface-card) !important; }
+
+/* legend, floating on the map */
+.legend{
+  position:absolute;
+  left:16px;
+  bottom:16px;
+  z-index:650;
+  background:var(--surface-card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 14px;
+  box-shadow:var(--shadow);
+  max-width:230px;
+}
+.legend-title{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:8px; }
+.legend-bar{
+  height:10px;
+  border-radius:5px;
+  /* matches app.js's viridis choropleth ramp exactly -- not the grayscale --seq-* tokens,
+     which stay reserved for the sidebar's own small accents (locality dots, timeline chips) */
+  background:linear-gradient(to right, #440154, #3e4a89, #26828e, #1f9e89, #6ece58, #fde725);
+  margin-bottom:5px;
+}
+.legend-scale{ display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-secondary); }
+.legend-note{ font-size:11px; color:var(--text-muted); margin-top:8px; line-height:1.45; }
+
+/* sidebar */
+.sidebar{
+  flex:0 0 clamp(280px, 27vw, 340px);
+  max-width:clamp(280px, 27vw, 340px);
+  min-height:0;
+  height:100%;
+  background:var(--surface-card);
+  border-left:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  padding-block:calc(20px + env(safe-area-inset-top, 0px)) calc(20px + env(safe-area-inset-bottom, 0px));
+  scrollbar-width:thin;
+  scrollbar-color:var(--border-strong) transparent;
+}
+.sidebar::-webkit-scrollbar{ width:8px; }
+.sidebar::-webkit-scrollbar-track{ background:transparent; }
+.sidebar::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:8px; }
+.sidebar-inner{ padding-inline:20px; display:flex; flex-direction:column; gap:18px; min-width:0; }
+
+.race-picker{
+  display:flex; align-items:center; gap:8px;
+}
+.race-picker label{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--text-muted); flex:0 0 auto;
+}
+.race-picker select{
+  flex:1 1 auto; min-width:0; max-width:100%; font:inherit; font-size:12.5px; font-weight:600;
+  color:var(--text-primary); background:var(--surface-raised); border:1px solid var(--border);
+  border-radius:8px; padding:7px 9px; cursor:pointer; text-overflow:ellipsis;
+}
+.race-picker select:focus{ outline:none; border-color:var(--accent); }
+
+.story-intro{
+  font-size:13px; font-weight:500; color:var(--text-secondary); line-height:1.55;
+  padding-bottom:16px; border-bottom:1px solid var(--border);
+}
+.story-intro b{ color:var(--text-primary); }
+.story-intro i{ color:var(--text-primary); font-style:normal; border-bottom:1px dashed var(--border-strong); }
+
+.stat-row{ display:flex; flex-wrap:wrap; gap:10px; }
+.stat-tile{
+  flex:1 1 88px;
+  min-width:88px;
+  background:var(--surface-raised);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+}
+.stat-tile .stat-value{ font-family:"JetBrains Mono",monospace; font-size:clamp(15px, 4.5vw, 19px); font-weight:700; overflow-wrap:anywhere; }
+.stat-tile .stat-label{ font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.01em; margin-top:2px; overflow-wrap:anywhere; }
+
+.card{
+  background:var(--surface-raised);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  min-width:0;
+  transition:border-color .15s ease;
+}
+.card-eyebrow-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.card-eyebrow{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); min-width:0; overflow-wrap:anywhere; }
+.card-reset{
+  font-size:11px; font-weight:600; color:var(--accent); background:none; border:none;
+  cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px; flex:0 0 auto;
+}
+.card-province{ font-size:clamp(16px, 4.8vw, 19px); font-weight:700; letter-spacing:-.01em; margin-top:6px; overflow-wrap:anywhere; }
+.card-figure{ font-family:"JetBrains Mono",monospace; font-size:clamp(26px, 8vw, 34px); font-weight:700; line-height:1.1; margin-top:6px; color:var(--accent); overflow-wrap:anywhere; }
+.card-figure sup{ font-size:0.47em; font-weight:600; margin-left:2px; }
+.card-sub{ font-size:12.5px; font-weight:500; color:var(--text-secondary); margin-top:8px; line-height:1.5; }
+.card-sub b{ color:var(--text-primary); }
+.card-hint{ font-size:11.5px; color:var(--text-muted); margin-top:10px; font-style:italic; }
+
+.section-title{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:8px; }
+.rank-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+.rank-row{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:7px 8px; border-radius:7px; cursor:pointer;
+  border:1px solid transparent;
+}
+.rank-row:hover{ background:var(--surface-page); border-color:var(--border); }
+.rank-row.active{ background:var(--surface-page); border-color:var(--accent); }
+.rank-name{ font-size:12.5px; font-weight:600; min-width:0; overflow-wrap:anywhere; }
+.rank-value{ font-family:"JetBrains Mono",monospace; font-size:12.5px; font-weight:600; color:var(--text-secondary); flex:0 0 auto; }
+
+footer.methodology{ font-size:11px; font-weight:500; color:var(--text-muted); line-height:1.6; border-top:1px solid var(--border); padding-top:14px; }
+footer.methodology b{ color:var(--text-secondary); }
+
+/* ---------------------------------------------------------------- locality drill-down */
+.locality-search{
+  width:100%; box-sizing:border-box; font:inherit; font-size:12.5px; font-weight:500;
+  color:var(--text-primary); background:var(--surface-page); border:1px solid var(--border);
+  border-radius:8px; padding:8px 10px; margin-bottom:8px;
+}
+.locality-search:focus{ outline:none; border-color:var(--accent); }
+.locality-search::placeholder{ color:var(--text-muted); }
+
+.locality-list{
+  list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px;
+  max-height:280px; overflow-y:auto; overflow-x:hidden;
+  scrollbar-width:thin; scrollbar-color:var(--border-strong) transparent;
+}
+.locality-list::-webkit-scrollbar{ width:7px; }
+.locality-list::-webkit-scrollbar-track{ background:transparent; }
+.locality-list::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:8px; }
+.locality-row{
+  display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:7px; cursor:pointer;
+  border:1px solid transparent;
+}
+.locality-row:hover{ background:var(--surface-page); border-color:var(--border); }
+.locality-dot{
+  width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--seq-450);
+  box-shadow:0 0 0 2px var(--surface-card);
+}
+.locality-dot.competitive{ background:var(--seq-150); border:1px solid var(--border-strong); }
+.locality-dot.flagged{ box-shadow:0 0 0 2px var(--surface-card), 0 0 0 3.5px var(--text-primary); }
+.locality-name{ font-size:12.5px; font-weight:600; flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
+.locality-empty{ font-size:12px; color:var(--text-muted); font-style:italic; padding:8px 2px; }
+
+.back-link{
+  display:inline-block; font-size:11.5px; font-weight:600; color:var(--accent);
+  background:none; border:none; cursor:pointer; padding:0; margin-bottom:10px;
+  text-decoration:underline; text-underline-offset:2px;
+}
+.back-link:hover{ color:var(--accent-strong); }
+
+.locality-heading{ margin-bottom:4px; min-width:0; }
+.locality-city{ font-size:clamp(15px, 4.5vw, 17px); font-weight:700; letter-spacing:-.01em; overflow-wrap:anywhere; }
+.locality-region{ font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; margin-top:1px; overflow-wrap:anywhere; }
+
+.locality-headline{ font-size:13px; font-weight:500; color:var(--text-secondary); line-height:1.55; margin:10px 0; }
+.locality-headline b{ color:var(--text-primary); }
+
+.timeline{ display:flex; gap:5px; flex-wrap:wrap; margin:10px 0; }
+.timeline-chip{
+  position:relative; min-width:44px; text-align:center; padding:5px 6px; border-radius:7px;
+  font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:600;
+  background:var(--seq-150); color:var(--seq-ink); border:1px solid var(--border);
+}
+.timeline-chip.landslide{ background:var(--seq-450); color:var(--accent-ink); border-color:transparent; }
+/* same fixed-ink reasoning as the base chip's text color above -- the ring sits on the same
+   mode-invariant --seq-* fills, so it needs mode-invariant ink too, not --text-primary */
+.timeline-chip.flagged{ box-shadow:inset 0 0 0 2px var(--seq-ink); }
+.timeline-chip.landslide.flagged{ box-shadow:inset 0 0 0 2px var(--accent-ink); }
+.timeline-chip.missing{ background:none; color:var(--text-muted); border-style:dashed; opacity:.6; }
+.timeline-chip{ cursor:default; }
+.timeline-chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+/* shared hover/focus tooltip for timeline chips -- appended to <body>, positioned with
+   position:fixed and clamped in JS, so it is never clipped by the sidebar's own
+   overflow-x:hidden scroll container the way an absolutely-positioned child would be */
+.chip-tooltip{
+  position:fixed;
+  z-index:9999;
+  max-width:220px;
+  background:var(--surface-card);
+  color:var(--text-primary);
+  border:1px solid var(--border-strong);
+  border-radius:8px;
+  box-shadow:var(--shadow);
+  padding:7px 10px;
+  font-family:"Public Sans",sans-serif;
+  font-size:11.5px;
+  font-weight:500;
+  line-height:1.45;
+  pointer-events:none;
+}
+.chip-tooltip::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  border:5px solid transparent;
+  bottom:-10px;
+  border-top-color:var(--surface-card);
+}
+.chip-tooltip.chip-tooltip-below::after{
+  bottom:auto;
+  top:-10px;
+  border-top-color:transparent;
+  border-bottom-color:var(--surface-card);
+}
+
+.anomaly-callout{
+  font-size:12.5px; font-weight:500; line-height:1.55; color:var(--text-primary);
+  background:var(--surface-page); border:1px solid var(--border-strong); border-left:3px solid var(--accent);
+  border-radius:8px; padding:10px 12px; margin:10px 0;
+}
+.anomaly-callout b{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); margin-bottom:4px; }
+
+.locality-stability{ font-size:12.5px; font-weight:500; color:var(--text-secondary); line-height:1.55; margin:10px 0; }
+
+.how-determined{ margin-top:6px; border-top:1px solid var(--border); padding-top:10px; }
+.how-determined summary{ font-size:11.5px; font-weight:700; color:var(--text-secondary); cursor:pointer; text-transform:uppercase; letter-spacing:.04em; }
+.how-table-scroll{ overflow-x:auto; margin-top:10px; -webkit-overflow-scrolling:touch; }
+.how-table{ width:100%; min-width:420px; border-collapse:collapse; font-size:11.5px; }
+.how-table th{ text-align:left; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em; font-size:9.5px; padding:4px 5px; border-bottom:1px solid var(--border-strong); }
+.how-table td{ padding:5px; border-bottom:1px solid var(--border); font-family:"JetBrains Mono",monospace; font-variant-numeric:tabular-nums; }
+.how-table td:first-child, .how-table th:first-child{ font-family:inherit; }
+.how-note{ font-size:10.5px; color:var(--text-muted); line-height:1.5; margin-top:8px; }
+
+/* ---------------------------------------------------------------- responsive */
+/* small/medium laptop windows (13" screens, non-maximized browser windows,
+   split-screen): keep the two-column layout but let the sidebar shrink
+   further and tighten up spacing so nothing needs more room than it has. */
+@media (max-width: 1100px){
+  .sidebar{ flex-basis:clamp(240px, 30vw, 300px); max-width:clamp(240px, 30vw, 300px); }
+  .sidebar-inner{ padding-inline:16px; gap:14px; }
+  .card{ padding:13px; }
+  .legend{ max-width:190px; padding:10px 12px; }
+}
+
+/* short viewport height (13" laptops are often short, not just narrow) --
+   compact the vertical rhythm so more of the sidebar is visible before
+   scrolling is needed, and shrink the headline figure a bit. */
+@media (max-height: 760px){
+  .sidebar-inner{ gap:12px; padding-block:4px; }
+  .card{ padding:12px; }
+  .card-figure{ font-size:clamp(22px, 6vw, 28px); margin-top:4px; }
+  .stat-tile{ padding:8px 10px; }
+  .locality-list{ max-height:200px; }
+}
+@media (max-height: 620px){
+  .card-sub, .locality-headline, .locality-stability{ margin-top:6px; margin-bottom:0; }
+  .locality-list{ max-height:150px; }
+}
+
+/* phones / narrow windows: stack map above sidebar. Also triggers on a short
+   *height* alone (not just narrow width) -- a phone rotated to landscape is
+   often 780-850px wide (wider than the 760px width check below) but only
+   ~360-420px tall, and the side-by-side layout has no room to work with at
+   that height: the floating legend/header boxes over the map start
+   overlapping each other and the map's own fallback text. Below ~460px of
+   height, stacking (and letting the page scroll normally) is safer than
+   forcing two columns into a sliver of vertical space. */
+@media (max-width: 760px), (max-height: 460px){
+  .app{ flex-direction:column; height:auto; min-height:calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+  .map-col{ flex:0 0 52dvh; min-height:220px; }
+  .sidebar{ flex:1 1 auto; max-width:none; height:auto; max-height:none; border-left:none; border-top:1px solid var(--border); }
+  .legend{ max-width:calc(100% - 32px); }
+}
