@@ -101,7 +101,11 @@ read of its own record ("2025 mayoral race: **Competitive**. The winner took 44.
 chip, and, for the Local race only, an anomaly callout and a stability sentence (`05`/`06`/`08`
 haven't been rerun for the other five yet). Plain HTML/CSS/JS, no build step, no framework;
 [Leaflet](https://leafletjs.com/) draws the province polygons as a vector layer with no basemap.
-See `app/README.md` for the full interaction model and how to regenerate its data.
+
+![Race selector switching between Local, Senate, and Congressional, with the national average recalculating for each: 28.8%, 3.9%, 40.1%](docs/images/race-compare.png)
+
+The race selector swaps the model underneath the map, not just its colors, so this national
+average is a different number for each of the six races, each one computed by its own independent
 
 ## What this doesn't do
 
@@ -113,20 +117,6 @@ happened. No browsable candidate-level vote database. No anomaly-detection or te
 model for the five races `11` added beyond Local. No claim that a Senate or Party List cluster
 means the same thing as a Local landslide cluster, both are multi-winner systems by design.
 
-## Reproducing this
-
-Drop the two files named in `data/README.md`'s Source section into `data/raw/` (the province
-boundary file already ships here), then run the notebooks in order, `01` through `11`. `01` and
-`02` take a few minutes on the full ~2M-row file; everything from `03` on runs in seconds. `09`
-and `11` need `geopandas` and `shapely` (in `requirements.txt`). Serve `app/` with
-`python3 -m http.server`, it can't be opened directly from disk.
-
-## Possible next work
-
-Extending `05`/`06`/`08` to the five races `11` added. City-level geographic detail down to `03`'s
-1,865-locality grain. Yearly or animated maps instead of `09`'s all-years aggregate. Re-running
-`05` at a higher contamination level. Surfacing `07`'s richer, 2016-onward feature set as an
-optional lens in the app.
 
 <details>
 <summary><strong>Repository layout</strong></summary>
