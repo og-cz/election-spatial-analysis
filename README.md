@@ -4,7 +4,7 @@
 > been, 2010-2025. Every notebook below is a real, executed run, not a narrative written after
 > the fact.
 
-![Hugis ng Boto: national landslide-share map, an Ilocos Norte city drilldown, and the national Senate low-fragmentation map](docs/images/hero.png)
+![Hugis ng Boto: national landslide-share map, an Ilocos Norte city drilldown, and the national Senate low-fragmentation map ](docs/images/hero.png)
 
 ## Why
 
