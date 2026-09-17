@@ -94,6 +94,16 @@ don't have to be rediscovered:
   serve both eras correctly. The last, `SPECIAL GEOGRAPHIC AREA` (8 rows, all 2025), is a BARMM
   administrative designation with no polygon of its own in this boundary file and is left
   genuinely unmapped rather than forced to match something.
+- **The boundary file's default simplification is too aggressive for small, non-coastal
+  provinces.** Found by visually inspecting the rendered map, not assumed correct just because
+  the join succeeded: five of the six Cordillera Administrative Region provinces (Abra, Apayao,
+  Benguet, Ifugao, Kalinga, Mountain Province) rendered as crude 5-to-22-vertex blobs under the
+  boundary source's default "lowres" (0.1%-simplified) files. These provinces have no coastline
+  and a comparatively low vertex count to begin with, so a percentage-based simplifier strips
+  almost all of their shape. Fixed in `ph_provinces_raw.geojson` by swapping in the same source's
+  "hires" (10%-simplified) version for just the CAR region's six polygons, leaving every other
+  region's lowres polygons as they were (visually correct). Worth checking again if this project
+  ever pulls in additional small interior provinces/regions from the same source.
 
 ## Processed outputs
 
@@ -114,6 +124,18 @@ Written by the notebooks into `processed/`:
 | `locality_clusters_rich.parquet` | `07` | ~6.4k | locality × year (2016+ only), + richer cluster label | Yes |
 | `locality_anomaly_temporal.parquet` | `08` | ~1.7k | locality, + anomaly/volatility summary | Yes |
 | `province_cluster_summary.parquet` | `09` | 88 | province, + landslide-share summary | Yes |
+| `island_group_trend.parquet` | `10` | 18 | island group × year, + landslide share | Yes |
+| `island_group_window_summary.parquet` | `10` | 3 | island group, + 3 time-window shares | Yes |
+| `locality_clusters_provincial.parquet` | `11` | ~7.4k | locality × year, + cluster label (Governor/VP-Gov/Board Member) | Yes |
+| `locality_clusters_congressional.parquet` | `11` | ~7.6k | locality × year, + cluster label (House) | Yes |
+| `locality_clusters_presidential.parquet` | `11` | ~4.8k | locality × year, + cluster label (President/VP) | Yes |
+| `locality_clusters_senate.parquet` | `11` | ~8.0k | locality × year, + cluster label (Senate) | Yes |
+| `locality_clusters_partylist.parquet` | `11` | ~7.6k | locality × year, + cluster label (Party List) | Yes |
+| `province_cluster_summary_provincial.parquet` | `11` | 83 | province, + landslide-share summary (Governor) | Yes |
+| `province_cluster_summary_congressional.parquet` | `11` | 87 | province, + landslide-share summary (House) | Yes |
+| `province_cluster_summary_presidential.parquet` | `11` | 85 | province, + landslide-share summary (President) | Yes |
+| `province_cluster_summary_senate.parquet` | `11` | 87 | province, + low-fragmentation-share summary (Senate) | Yes |
+| `province_cluster_summary_partylist.parquet` | `11` | 87 | province, + landslide-share summary (Party List) | Yes |
 
 The two large intermediate files are dropped from the delivered zip purely to stay under the
 file-size limit for sending it — `02_feature_engineering.ipynb` needs them, so re-run
@@ -128,7 +150,7 @@ placeholders so the empty folders still exist after a fresh clone), except for
 `raw/ph_provinces_raw.geojson`, which is small and freely redistributable and so is tracked
 directly. Everything else in both directories is either an election source file that isn't ours
 to redistribute (`raw/`) or fully regenerable output (`processed/` — every file in the table
-above is rebuilt by running `notebooks/01` through `notebooks/09` in order). Only the notebooks,
+above is rebuilt by running `notebooks/01` through `notebooks/10` in order). Only the notebooks,
 `src/common.py`, and that one boundary file are the actual tracked work; a fresh clone needs the
 two election files listed under **Source** above dropped into `raw/` and the notebooks run in
 order to reproduce everything else.
