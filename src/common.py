@@ -1,4 +1,4 @@
-"""Shared helpers for the election-spatial-analysis notebooks.
+"""Shared helpers for the project notebooks.
 
 Pulled out here so a fix to the locality-grouping convention, the text-cleaning logic, or the
 race-feature computation only has to be made once. Before this existed, `locality_group_cols`
@@ -147,10 +147,12 @@ def build_race_features(df, group_extra_cols=()):
     return out, dropped_summary
 
 
-def build_core_feature_matrix(locality_features, core_positions=CORE_POSITIONS, metrics=CORE_METRICS):
-    """Complete-case rows and a log-transformed feature matrix for the core (locally-decided)
-    positions, shared by every clustering/anomaly-detection notebook so they all start from the
-    same feature definition.
+def build_group_feature_matrix(locality_features, positions, metrics=CORE_METRICS):
+    """Complete-case rows and a log-transformed feature matrix for an arbitrary set of ballot
+    positions -- the general form of `build_core_feature_matrix` below, added in `11` to run the
+    same clustering method against position groups other than the locally-decided three (`04`
+    only ever needed one fixed group, so this generalization didn't exist until `11` needed it
+    for Provincial/Congressional/Presidential/Senate/Party List).
 
     `hhi` is intentionally excluded even though it exists per position: `enc = 1 / hhi` by
     construction (see `build_race_features`), so including both would double-count the same
@@ -158,16 +160,31 @@ def build_core_feature_matrix(locality_features, core_positions=CORE_POSITIONS, 
     skewness 2.33 for Councilor, 0.02 after log) before standardizing elsewhere.
 
     Returns `(df, X, feature_cols)`: `df` is `locality_features` restricted to complete-case
-    rows (original columns, index reset), `X` is the corresponding untransformed-but-logged
-    feature DataFrame (same row order as `df`), and `feature_cols` lists the 9 column names.
-    Scaling (e.g. `StandardScaler`) is left to the caller.
+    rows for the given positions (original columns, index reset), `X` is the corresponding
+    untransformed-but-logged feature DataFrame (same row order as `df`), and `feature_cols` lists
+    the `len(positions) * len(metrics)` column names. Scaling (e.g. `StandardScaler`) is left to
+    the caller.
     """
-    feature_cols = [f"{p}_{m}" for p in core_positions for m in metrics]
+    feature_cols = [f"{p}_{m}" for p in positions for m in metrics]
     complete = locality_features[feature_cols].notna().all(axis=1)
     df = locality_features[complete].reset_index(drop=True).copy()
 
     X = df[feature_cols].copy()
-    for p in core_positions:
+    for p in positions:
         X[f"{p}_enc"] = np.log(X[f"{p}_enc"])
 
     return df, X, feature_cols
+
+
+def build_core_feature_matrix(locality_features, core_positions=CORE_POSITIONS, metrics=CORE_METRICS):
+    """Complete-case rows and a log-transformed feature matrix for the core (locally-decided)
+    positions, shared by every clustering/anomaly-detection notebook so they all start from the
+    same feature definition. A thin wrapper around `build_group_feature_matrix` fixed to
+    `CORE_POSITIONS` -- kept as its own function since `01`-`08` already import it by this name.
+
+    Returns `(df, X, feature_cols)`: `df` is `locality_features` restricted to complete-case
+    rows (original columns, index reset), `X` is the corresponding untransformed-but-logged
+    feature DataFrame (same row order as `df`), and `feature_cols` lists the 9 column names.
+    Scaling (e.g. `StandardScaler`) is left to the caller.
+    """
+    return build_group_feature_matrix(locality_features, core_positions, metrics)
