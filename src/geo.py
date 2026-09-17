@@ -1,4 +1,4 @@
-"""Shared geographic-join helpers for election-spatial-analysis, split out from `common.py`
+"""Shared geographic-join helpers for this project, split out from `common.py`
 because these depend on geopandas/shapely -- a heavier, more specialized dependency that
 notebooks 01-08 have no reason to require just to import unrelated functions. Only `09` (and
 anything downstream of it, e.g. an exported app data file) needs this module.
